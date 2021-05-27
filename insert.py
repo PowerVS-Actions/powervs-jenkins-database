@@ -53,8 +53,8 @@ def insert_data(table,date,time_utc,cluster_id,powervs_guid,powervs_region,power
     return powervs_id
 
 if __name__ == '__main__':
-
-    if len(sys.argv) != 10:
+    print (len(sys.argv))
+    if len(sys.argv) != 12:
         sys.exit('''
     ERROR: The nuber of arguments is not correct.
            We expect: table,date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,requestor_id,jenkins_url_job
