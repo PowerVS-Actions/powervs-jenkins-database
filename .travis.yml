@@ -15,7 +15,7 @@ jobs:
       script:
         - docker build -t quay.io/powercloud/powervs-actions:rh-ocp-database-ppc64le .
         - docker login quay.io -u $USER_QUAY -p $PWD_QUAY
-        - docker quay.io/powercloud/powervs-actions:rh-ocp-database-ppc64le
+        - docker push quay.io/powercloud/powervs-actions:rh-ocp-database-ppc64le
     - stage: building x86_64 container image
       arch: amd64
       script:
