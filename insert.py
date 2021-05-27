@@ -24,10 +24,10 @@ def config(filename='database.ini', section='postgresql'):
     return db
     
 
-def insert_data(table,date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email):
+def insert_data(table,date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,requestor_id,jenkins_url_job):
 
-    sql = "INSERT INTO " + table + " (date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email) \
-    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING cluster_id;"
+    sql = "INSERT INTO " + table + " (date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,requestor_id,jenkins_url_job) \
+    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING cluster_id;"
     conn = None
     powervs_id = None
     try:
@@ -38,7 +38,7 @@ def insert_data(table,date,time_utc,cluster_id,powervs_guid,powervs_region,power
         # create a new cursor
         cur = conn.cursor()
         # execute the INSERT statement
-        cur.execute(sql, (date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,))
+        cur.execute(sql, (date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,requestor_id,jenkins_url_job,))
         # get the powervs_id back
         powervs_id = cur.fetchone()[0]
         # commit the changes to the database
@@ -57,13 +57,14 @@ if __name__ == '__main__':
     if len(sys.argv) != 9:
         sys.exit('''
     ERROR: The nuber of arguments is not correct.
-           We expect: table,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email
+           We expect: table,date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,requestor_id,jenkins_url_job
         ''')
     else:
         print ('Argument List:', str(sys.argv))
         
-        #table,date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email
+        #table,date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,requestor_id, jenkins_url_job
         today = datetime.today().strftime('%m/%d/%Y')
         time = str(datetime.utcnow()).split(" ")[1]
 
-        insert_data(str(sys.argv[1]),str(today),str(time),str(sys.argv[2]),str(sys.argv[3]),str(sys.argv[4]),str(sys.argv[5]),str(sys.argv[6]),str(sys.argv[7]),str(sys.argv[8]))
+        insert_data(str(sys.argv[1]),str(today),str(time),str(sys.argv[2]),str(sys.argv[3]),str(sys.argv[4]),str(sys.argv[5]),str(sys.argv[6]),str(sys.argv[7]),str(sys.argv[8]),str(sys.argv[9]),str(sys.argv[10]))
+
