@@ -3,6 +3,7 @@
 import os
 import sys
 import psycopg2
+import ibm_db
 from datetime import datetime,timezone
 
 from configparser import ConfigParser
@@ -52,11 +53,36 @@ def insert_data(table,date,time_utc,cluster_id,powervs_guid,powervs_region,power
             conn.close()
     return powervs_id
 
+# expects the table already there
+# CREATE TABLE clusters (date_utc VARCHAR(10), time_utc VARCHAR(16), cluster_id VARCHAR(32), powervs_guid VARCHAR(32), powervs_region VARCHAR(8), powervs_zone VARCHAR(8), ocp_version VARCHAR(16), ocp_size INT, requestor_email VARCHAR(64), requestor_id VARCHAR(16), jenkins_url_job VARCHAR(256))
+def insert_db2(table, date, time_utc, cluster_id, powervs_guid, powervs_region, powervs_zone, ocp_version, ocp_size, requestor_email, requestor_id, jenkins_url_job):
+    conn = None
+    rowid = -1
+    try:
+        p = ConfigParser()
+        p.read('database.ini')
+        conn_str = 'database=' + p.get('db2', 'database') + ';hostname=' + p.get('db2', 'host') + ';port=50000;protocol=tcpip;uid=' + p.get('db2', 'uid') + ';pwd=' + p.get('db2', 'pwd')
+        conn = ibm_db.connect(conn_str, '', '')
+        sql = 'INSERT INTO ' + table + ' VALUES(?,?,?,?,?,?,?,?,?,?,?)'
+        stmt = ibm_db.prepare(conn, sql)
+        params = (date, time_utc, cluster_id, powervs_guid, powervs_region, powervs_zone, ocp_version, ocp_size, requestor_email, requestor_id, jenkins_url_job)
+        ibm_db.execute(stmt, params)
+        #select = 'SELECT rowid FROM ' + table + ' WHERE cluster_id=\'' + cluster_id + '\''
+        #stmt = ibm_db.exec_immeadiate(conn, select)
+        #cols = ibm_db.fetch_tuple(stmt)
+        #rowid = cols[0]
+    except Exception as error: 
+        print(error)
+    finally:
+        if conn is not None:
+            ibm_db.close(conn)
+    return cluster_id #rowid
+
 if __name__ == '__main__':
     print (len(sys.argv))
     if len(sys.argv) != 11:
         sys.exit('''
-    ERROR: The nuber of arguments is not correct.
+    ERROR: The number of arguments is not correct.
            We expect: table,date,time_utc,cluster_id,powervs_guid,powervs_region,powervs_zone,ocp_version,ocp_size,requestor_email,requestor_id,jenkins_url_job
         ''')
     else:
@@ -67,4 +93,5 @@ if __name__ == '__main__':
         time = str(datetime.utcnow()).split(" ")[1]
 
         insert_data(str(sys.argv[1]),str(today),str(time),str(sys.argv[2]),str(sys.argv[3]),str(sys.argv[4]),str(sys.argv[5]),str(sys.argv[6]),str(sys.argv[7]),str(sys.argv[8]),str(sys.argv[9]),str(sys.argv[10]))
+        insert_db2('clusters',str(today),str(time),str(sys.argv[2]),str(sys.argv[3]),str(sys.argv[4]),str(sys.argv[5]),str(sys.argv[6]),int(sys.argv[7]),str(sys.argv[8]),str(sys.argv[9]),str(sys.argv[10]))
 
